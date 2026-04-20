@@ -11,6 +11,7 @@ import {
   loginUser,
   logoutUser,
   signupUser,
+  subscribeToAuthChanges,
 } from "../services/authService";
 
 const AuthContext = createContext(null);
@@ -22,7 +23,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const sessionUser = getCurrentUser();
     setUser(sessionUser);
-    setLoading(false);
+    const unsubscribe = subscribeToAuthChanges((nextUser) => {
+      setUser(nextUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const login = useCallback(async (credentials) => {

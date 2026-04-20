@@ -1,4 +1,11 @@
-import { hasSupabase, supabase } from "./supabaseClient";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { firebaseAuth, hasFirebase } from "./firebaseClient";
 import { readAppState, readSession, writeAppState, writeSession } from "./storage";
 
 function sanitizeUser(user) {
@@ -14,25 +21,37 @@ export function getCurrentUser() {
   return readSession();
 }
 
-export async function signupUser({ name, email, password }) {
-  if (hasSupabase) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          role: "Product Engineer",
-        },
-      },
-    });
+export function subscribeToAuthChanges(callback) {
+  if (!hasFirebase || !firebaseAuth) {
+    callback(readSession());
+    return () => {};
+  }
 
-    if (error) {
-      throw new Error(error.message);
+  return onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+    if (!firebaseUser) {
+      writeSession(null);
+      callback(null);
+      return;
     }
 
+    const sessionUser = sanitizeUser({
+      id: firebaseUser.uid,
+      name: firebaseUser.displayName || "ScanDev User",
+      email: firebaseUser.email,
+      role: "Product Engineer",
+    });
+    writeSession(sessionUser);
+    callback(sessionUser);
+  });
+}
+
+export async function signupUser({ name, email, password }) {
+  if (hasFirebase && firebaseAuth) {
+    const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    await updateProfile(credential.user, { displayName: name });
+
     const user = sanitizeUser({
-      id: data.user.id,
+      id: credential.user.uid,
       name,
       email,
       role: "Product Engineer",
@@ -67,21 +86,14 @@ export async function signupUser({ name, email, password }) {
 }
 
 export async function loginUser({ email, password }) {
-  if (hasSupabase) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
+  if (hasFirebase && firebaseAuth) {
+    const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
 
     const sessionUser = sanitizeUser({
-      id: data.user.id,
-      name: data.user.user_metadata.name || "ScanDev User",
-      email: data.user.email,
-      role: data.user.user_metadata.role || "Product Engineer",
+      id: credential.user.uid,
+      name: credential.user.displayName || "ScanDev User",
+      email: credential.user.email,
+      role: "Product Engineer",
     });
     writeSession(sessionUser);
     return sessionUser;
@@ -102,8 +114,8 @@ export async function loginUser({ email, password }) {
 }
 
 export async function logoutUser() {
-  if (hasSupabase) {
-    await supabase.auth.signOut();
+  if (hasFirebase && firebaseAuth) {
+    await signOut(firebaseAuth);
   }
 
   writeSession(null);
