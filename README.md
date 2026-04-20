@@ -27,7 +27,7 @@ This makes the platform useful for portfolio review, academic evaluation, and pr
 - Improvement checklist with update support
 - Side-by-side repository comparison
 - Loading states and error handling
-- Supabase-ready backend integration with local persistent fallback
+- Firebase Authentication integration with local persistent fallback
 - Lazy-loaded routes with `React.lazy` and `Suspense`
 
 ## Tech Stack
@@ -37,7 +37,7 @@ This makes the platform useful for portfolio review, academic evaluation, and pr
 - Context API
 - Tailwind CSS
 - Vite
-- Supabase (`@supabase/supabase-js`)
+- Firebase
 - LocalStorage fallback persistence for offline/demo mode
 - Lucide React icons
 
@@ -66,32 +66,28 @@ Key architectural choices:
 - `pages/` own route-level UI while `components/` stay reusable
 - `hooks/useRepoFilters.js` centralizes history filtering behavior
 
-## Supabase Setup
+## Firebase Setup
 
-ScanDev supports a real backend flow with Supabase. Add the following variables to a local `.env` file:
+ScanDev supports a real authentication flow with Firebase. Add the following variables to a local `.env` file:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 If these values are not present, the app automatically falls back to browser-based local persistence so the full UI remains demoable.
 
-Suggested `scans` table columns for Supabase:
+To enable Firebase login:
 
-- `id`
-- `user_id`
-- `repo_url`
-- `project_name`
-- `created_at`
-- `score`
-- `status`
-- `bookmarked`
-- `summary`
-- `metrics` (jsonb)
-- `insights` (jsonb)
-- `suggestions` (jsonb)
-- `checklist` (jsonb)
+1. Create a Firebase project.
+2. Enable `Authentication`.
+3. Turn on the `Email/Password` sign-in provider.
+4. Add a web app and copy the Firebase config values into `.env`.
+5. Scan history and report data currently use browser persistence, so Firebase setup is only required for authentication.
 
 ## Local Development
 
@@ -136,7 +132,7 @@ Place screenshots in a future `screenshots/` folder and reference them here.
 - Why Context API was chosen for global app state
 - How protected routes and persistent session handling work
 - How lazy loading improves initial route performance
-- How the services layer supports both Supabase and local offline mode
+- How the services layer supports both Firebase and local offline mode
 - How the UI was designed to resemble a premium SaaS analysis platform
 
 ## Future Scope

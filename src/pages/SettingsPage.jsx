@@ -1,5 +1,5 @@
 import { Database, ShieldCheck, Sparkles } from "lucide-react";
-import { hasSupabase } from "../services/supabaseClient";
+import { hasFirebase } from "../services/firebaseClient";
 
 function SettingsPage() {
   return (
@@ -16,9 +16,9 @@ function SettingsPage() {
           </div>
           <h2 className="mt-5 font-display text-2xl font-bold">Backend mode</h2>
           <p className="mt-3 leading-7 text-slate-600">
-            {hasSupabase
-              ? "Supabase credentials detected. Authentication can use your remote backend."
-              : "Supabase keys are not configured, so ScanDev is using persistent local storage for demos."}
+            {hasFirebase
+              ? "Firebase configuration detected. Authentication is running through your Firebase project."
+              : "Firebase config is not present, so ScanDev is using persistent local storage for demo auth and scan data."}
           </p>
         </div>
 
